@@ -12,7 +12,7 @@ const Header = () => {
       <div>
         <Link href="/" aria-label={siteMetadata.headerTitle}>
           <div className="flex items-center justify-between gap-2">
-            <Logo className="dark:invert w-8 h-8" />
+            <Logo className="h-8 w-8 dark:invert" />
             {typeof siteMetadata.headerTitle === 'string' ? (
               <div className=" hidden h-6 items-center text-2xl font-semibold leading-6 sm:block">
                 {siteMetadata.headerTitle}

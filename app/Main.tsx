@@ -11,7 +11,7 @@ export default function Home({ posts }) {
   return (
     <>
       <div className="flex items-center">
-        <div className='mr-2'>Hi, I'm Lenny Lee !</div>
+        <div className="mr-2">Hi, I'm Lenny Lee !</div>
         <div> 欢迎来到我的赛博小屋 </div>
         {/* <Image
           src="/static/favicons/tea.gif"

@@ -38,7 +38,9 @@ export default function AuthorLayout({ children, content }: Props) {
           <div className="prose max-w-none pb-8 pt-8 dark:prose-invert xl:col-span-2">
             <p>
               {' '}
-              Hi there, I'm Lenny Lee. Welcome to my Blog Home.I treat my blog as my second brain, used for technical writing and documentation, following the flow of time, and also to have something that belongs to me in an information age.
+              Hi there, I'm Lenny Lee. Welcome to my Blog Home.I treat my blog as my second brain,
+              used for technical writing and documentation, following the flow of time, and also to
+              have something that belongs to me in an information age.
             </p>
             {children}
           </div>
