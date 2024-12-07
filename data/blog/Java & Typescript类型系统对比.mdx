@@ -1,0 +1,56 @@
+---
+title: 'Java & Typescript类型系统对比'
+
+date: '2024-12-07'
+
+lastmod: '2024-12-07'
+
+tags: ['Type System', 'TypeScript', 'Java']
+
+draft: false
+
+layout: 'PostSimple'
+
+summary: '简单介绍Java 和 TypeScript 的Type System的不同。'
+---
+
+# 1. 核心差异
+
+1. java: `命名类型- nominally-typed` languages: explicitly describe itself as being an implementer of the `Pet` interface.
+2. TypeScript: `结构性子类型-structural subtyping` Type compatibility in TypeScript is based on structural subtyping
+   1. TypeScript’s structural type system was designed based on how JavaScript code is typically written. Because JavaScript widely uses anonymous objects like function expressions and object literals, it’s much more natural to represent the kinds of relationships found in JavaScript libraries with a structural type system instead of a nominal one.
+
+```java
+//Java
+interface Pet {
+    String getName();
+}
+
+class Dog implements Pet {
+    private String name;
+
+    public Dog(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+}
+```
+
+```typescript
+//typescript
+interface Pet {
+  name: string
+}
+class Dog {
+  name: string
+}
+let pet: Pet
+// OK, because of structural typing
+pet = new Dog()
+```
+
+[TypeScript: Documentation - Type Compatibility](https://www.typescriptlang.org/docs/handbook/type-compatibility.html#a-note-on-soundness)
