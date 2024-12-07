@@ -1,3 +1,19 @@
+---
+title: '从30天的 type-challenges中学到了什么'
+
+date: '2024-12-07'
+
+lastmod: '2024-12-07'
+
+tags: ['TypeScript']
+
+draft: false
+
+layout: 'PostSimple'
+
+summary: 'type-challenges练习的总结思考'
+---
+
 ## Introduction
 
 这篇文章是在为期30天的`type-challenges`练习之后的总结思考 - [my ts practice repo](https://github.com/LennyLee1998/TDL-TS)
@@ -8,7 +24,7 @@
 
 - `infer`必须在`conditional types`中使用
 
->  什么是conditional types
+> 什么是conditional types
 
 ```typescript
 T extends U ? X : Y
@@ -17,7 +33,7 @@ T extends U ? X : Y
 ### 2. 怎么得到 tuple 的长度
 
 ```typescript
-export type Length<T extends readonly unknown[]> = T["length"];
+export type Length<T extends readonly unknown[]> = T['length']
 ```
 
 ### 3. unknown & any
@@ -28,29 +44,27 @@ export type Length<T extends readonly unknown[]> = T["length"];
   - 但是`unknown`虽然可以接受任何类型的值，但您不能直接操作它，直到对其进行类型检查或类型断言。
 
 ```typescript
-let value: any;  
+let value: any
 
-value = 42; // OK  
-value = "hello"; // OK  
-value = { name: "John" }; // OK  
-value.someMethod(); // 编译仍然通过，但可能会在运行时出错
+value = 42 // OK
+value = 'hello' // OK
+value = { name: 'John' } // OK
+value.someMethod() // 编译仍然通过，但可能会在运行时出错
 
-let value: unknown;  
+let value: unknown
 
-value = 42; // OK  
-value = "hello"; // OK  
-value = { name: "John" }; // OK  
+value = 42 // OK
+value = 'hello' // OK
+value = { name: 'John' } // OK
 
-// 以下将导致编译错误，因为对未知类型无法直接操作  
-// value.someMethod(); // Error: Object is of type 'unknown'.  
+// 以下将导致编译错误，因为对未知类型无法直接操作
+// value.someMethod(); // Error: Object is of type 'unknown'.
 
-// 需要先进行类型检查  
-if (typeof value === "object" && value !== null) {  
-    console.log(value); // 现在可以安全地使用 value  
+// 需要先进行类型检查
+if (typeof value === 'object' && value !== null) {
+  console.log(value) // 现在可以安全地使用 value
 }
 ```
-
-
 
 ## 遍历object和tuple的方法
 
@@ -88,8 +102,8 @@ type First<T extends any[]> = T extends [infer F, ...infer Args]
 
 ```typescript
 type TupleToObject<T extends readonly (string | number | symbol)[]> = {
-  [P in T[number]]:  P;
-};
+  [P in T[number]]: P
+}
 ```
 
 - `tuple`是一个`readonly array`,` fixed length`, `fixed type`
@@ -104,36 +118,32 @@ type TupleToObject<T extends readonly (string | number | symbol)[]> = {
 
 ```typescript
 // 示例一
-type MyExclude<T, U> = T extends U ? never : T;
-type Result = MyExclude<"a" | "b" | "c", "a">; // 'b' | 'c'
+type MyExclude<T, U> = T extends U ? never : T
+type Result = MyExclude<'a' | 'b' | 'c', 'a'> // 'b' | 'c'
 
 //示例二
 type Permutation<T, K = T> = [T] extends [never]
   ? []
   : K extends K
-  ? [K, ...Permutation<Exclude<T, K>>]
-  : never; 
-     
-type perm = Permutation<"A" | "B" | "C">; // ['A', 'B', 'C'] | ['A', 'C', 'B'] | ['B', 'A', 'C'] | ['B', 'C', 'A'] | ['C', 'A', 'B'] | ['C', 'B', 'A']
+    ? [K, ...Permutation<Exclude<T, K>>]
+    : never
+
+type perm = Permutation<'A' | 'B' | 'C'> // ['A', 'B', 'C'] | ['A', 'C', 'B'] | ['B', 'A', 'C'] | ['B', 'C', 'A'] | ['C', 'A', 'B'] | ['C', 'B', 'A']
 ```
 
-4. 直接使用 | 
+4. 直接使用 |
 
 ```typescript
-type StringToUnion<T extends string> =
-  T extends `${infer First}${infer Rest}` ? First | StringToUnion<Rest> : never
+type StringToUnion<T extends string> = T extends `${infer First}${infer Rest}`
+  ? First | StringToUnion<Rest>
+  : never
 ```
 
 ## Chainable-Options
 
 ```typescript
-type MyAwaited<T extends PromiseLike<any>> = T extends PromiseLike<
-  infer U
->
-  ? U extends PromiseLike<any>
-    ? MyAwaited<U>
-    : U
-  : never;
+type MyAwaited<T extends PromiseLike<any>> =
+  T extends PromiseLike<infer U> ? (U extends PromiseLike<any> ? MyAwaited<U> : U) : never
 ```
 
 ## utility types 辨析
@@ -146,14 +156,14 @@ type MyAwaited<T extends PromiseLike<any>> = T extends PromiseLike<
 
 ```typescript
 //Exclude 接收的是union types, 返回的也是union types
-type MyExclude<T, U> = T extends U ? never : T;
+type MyExclude<T, U> = T extends U ? never : T
 ```
 
 > Omit => 新的对象类型
 
 ```typescript
 //可以使用Exclude实现Omit
-type Omit<T, K extends keyof any> = { [P in Exclude<keyof T, K>]: T[P]; }
+type Omit<T, K extends keyof any> = { [P in Exclude<keyof T, K>]: T[P] }
 ```
 
 所以, 从上面的实现可以看出来, Omit 和 Pick 是对象类型层级上的操作, 而Exclude是针对 union types 的
