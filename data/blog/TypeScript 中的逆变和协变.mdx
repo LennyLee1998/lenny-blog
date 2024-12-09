@@ -1,0 +1,112 @@
+---
+title: 'TypeScript 中的逆变和协变'
+
+date: '2024-12-08'
+
+lastmod: '2024-12-08'
+
+tags: ['TypeScript']
+
+draft: true
+
+layout: 'PostSimple'
+
+summary: '简单介绍TypeScript的逆变（Contravariance）与协变（Covariance）'
+---
+
+逆变（Contravariance）与协变（Covariance）确实是类型系统中两个重要的概念，它们共同维护类型的灵活性与安全性，尤其是在处理继承和多态时。
+
+### 协变 (Covariance)
+
+**协变**通常与返回值类型有关，它允许子类在类型层次中向上转换。简单来说，如果一个类型 A 是类型 B 的子类型（即 A extends B），则返回类型为 A 的函数可以当作返回类型为 B 的函数。协变让我们在函数返回中处理更具体（子类）类型的实例。
+
+```typescript
+class Animal {  
+  sound(): string {  
+    return "animal sound";  
+  }  
+}  
+
+class Dog extends Animal {  
+  sound(): string {  
+    return "bark";  
+  }  
+}  
+
+// 协变示例  
+function getAnimal(): Animal {  
+  return new Dog(); // 返回 Dog 类的实例，符合 Animal 类型  
+}  
+
+const myAnimal: Animal = getAnimal(); // 这是有效的  
+console.log(myAnimal.sound()); // 输出: bark
+```
+
+在这个例子中，`getAnimal` 函数的返回类型是 `Animal`，但是它返回了 `Dog` 类型的实例，这体现了协变。
+
+### 逆变 (Contravariance)
+
+**逆变**则主要与参数类型相关，它允许较宽泛（父类）的类型被使用在较具体（子类）的类型之中。这意味着接受父类参数的函数可以赋值或替换为接受子类参数的函数。
+
+```typescript
+class Shape {  
+  area: number;  
+}  
+
+class Circle extends Shape {  
+  constructor(public radius: number) {  
+    super();  
+    this.area = Math.PI * radius * radius;  
+  }  
+}  
+
+class Square extends Shape {  
+  constructor(public side: number) {  
+    super();  
+    this.area = side * side;  
+  }  
+}  
+
+// 通用处理函数  
+function processShape(shape: Shape) {  
+  console.log(`Processing shape with area: ${shape.area}`);  
+}  
+
+// 逆变示例  
+let handleCircle: (circle: Circle) => void = processShape; // 合法，processShape 是更广泛的类型  
+
+const myCircle = new Circle(5);  
+handleCircle(myCircle); // 使用 Circle 类型的实例
+```
+
+在这个例子中，`processShape` 函数接受 `Shape` 类型的参数，而 `handleCircle` 是一个接受 `Circle` 类型参数的函数。这显示出了逆变的特性，使得其可以兼容更多的子类型。
+
+### 协变与逆变的关系
+
+协变和逆变共同维护类型系统的灵活性和安全性：
+
+- **协变**允许在返回值中使用更具体的类型；
+- **逆变**则允许在参数中使用更广泛的类型。
+
+这种设计保证你可以安全地使用基类和子类之间的功能，而不会引发类型错误或不当处理。通过这两个特性的结合，可以在实现多态行为的时候，确保代码的灵活性和可维护性。
+
+### 我的理解
+
+我的理解是**不管是逆变还是协变, 二者都是为了保证在使用的时候使得小类型的容器放到大类型的容器里面, 否则就要溢出**
+
+```typescript
+interface Person {
+  name: string
+}
+interface Guang extends Person {
+  hobbies: string;
+}
+let printHobbies = (guang: Guang) => {
+  console.log(guang.hobbies)
+}
+let printName = (person: Person) => {
+  console.log(person.name)
+}
+printHobbies = printName
+```
+
