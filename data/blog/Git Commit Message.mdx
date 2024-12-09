@@ -1,0 +1,70 @@
+---
+title: 'Git Commit Message'
+
+date: '2024-12-09'
+
+lastmod: '2024-12-09'
+
+tags: ['Git']
+
+draft: true
+
+layout: 'PostSimple'
+
+summary: 'Commit Messages 该怎么写'
+---
+
+### 为什么要写好 Commit Messages
+
+- 作为开发者参与团队项目的时候, 为了使得自己的`commit`让团队的成员更好理解, 也更加有利于之后的维护
+
+- 个人来说, 未来你可能看到一段含糊暧昧的`message`, 即使是自己写的, 都会忘记当时修改的内容
+
+- 所以一个好的`commit message`在开发过程中至关重要
+
+### 怎么写好 Commit Messages
+
+#### 1. Command Line
+
+```bash
+git commit -m <title> -m <description>
+```
+
+#### 2. Conventional Commit格式
+
+```bash
+<type>[optional scope]: <description>
+```
+
+##### type
+
+- `feat` – a new feature is introduced with the changes
+- `fix` – a bug fix has occurred
+- `chore` – changes that do not relate to a fix or feature and don't modify src or test files (for example updating dependencies)
+- `refactor` – refactored code that neither fixes a bug nor adds a feature
+- `docs` – updates to documentation such as a the README or other markdown files
+- `style` – changes that do not affect the meaning of the code, likely related to code formatting such as white-space, missing semi-colons, and so on.
+- `test` – including new or correcting previous tests
+- `perf` – performance improvements
+- `ci` – continuous integration related
+- `build` – changes that affect the build system or external dependencies
+- `revert` – reverts a previous commit
+
+#### 3. Description
+
+- 使用祈使句, 命令句
+- 长度不要超过50字符
+- 详细 & 简洁
+
+#### 4. Examples
+
+```bash
+feat: improve performance with lazy load implementation for images
+chore: update npm dependency to latest version
+Fix bug preventing users from submitting the subscribe form
+Update incorrect client phone number within footer body per client request
+```
+
+### 参考资料
+
+1. https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/
