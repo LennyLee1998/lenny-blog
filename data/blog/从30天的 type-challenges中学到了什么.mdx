@@ -3,7 +3,7 @@ title: '从30天的 type-challenges中学到了什么'
 
 date: '2024-12-07'
 
-lastmod: '2024-12-07'
+lastmod: '2024-12-11'
 
 tags: ['TypeScript']
 
@@ -14,13 +14,35 @@ layout: 'PostSimple'
 summary: 'type-challenges练习的总结思考'
 ---
 
-## Introduction
+### Introduction
 
 这篇文章是在为期30天的`type-challenges`练习之后的总结思考 - [my ts practice repo](https://github.com/LennyLee1998/TDL-TS)
 
-## 前置知识
+### 前置知识
 
-### 1. 正确使用 infer
+#### `keyof` 返回什么
+
+The `keyof` operator takes an object type and produces a **string or numeric literal union** of its keys.
+
+```typescript
+type Foo = {
+  name: string
+  age: string
+}
+
+type Bar = {
+  name: string
+  gender: number
+}
+
+type F = keyof (Foo | Bar) //"name"
+```
+
+在文档中可以看到 `keyof` 得到的是对象类型的 keys 的字面量 union type
+
+但是当我们对两个对象的union type取 `keyof` 的时候, 会得到 union type 中所有对象类型共同的keys
+
+#### 正确使用 `infer`
 
 - `infer`必须在`conditional types`中使用
 
@@ -30,13 +52,17 @@ summary: 'type-challenges练习的总结思考'
 T extends U ? X : Y
 ```
 
-### 2. 怎么得到 tuple 的长度
+#### 怎么得到 `tuple` 的长度
 
 ```typescript
-export type Length<T extends readonly unknown[]> = T['length']
+export type Length<T extends readonly unknown[]> = T["length"];
+
+
+Expect<Equal<MyExclude<"a" | "b" | "c", "a">, "b" | "c">>,
+Expect<Equal<MyExclude<"a" | "b" | "c", "a" | "b">, "c">>,
 ```
 
-### 3. unknown & any
+#### unknown & any
 
 - 在 TypeScript 中，使用 `unknown` 类型比使用 `any` 更加严格和安全。
   - `unknown`与类型安全规则兼容, 必须经过某种形式的检查后才能被使用, 但是`any`不会进行类型检查。
@@ -66,12 +92,12 @@ if (typeof value === 'object' && value !== null) {
 }
 ```
 
-## 遍历object和tuple的方法
+### 遍历 `object` 和 `tuple` 的方法
 
-### object
+#### `object`
 
-1.  `keyof`可以用来得到`object`的`key值`的`union type`
-2.  使用`in` 遍历`union type`
+1. `keyof`可以用来得到`object`的`key值`的`union type`
+2. 使用`in` 遍历`union type`
 
 ```typescript
 interface User {
@@ -82,7 +108,7 @@ interface User {
 type LoopObject<T> = {[K in keyof T]: ...}
 ```
 
-### tuple
+#### `tuple`
 
 ```typescript
 //方法一
@@ -109,11 +135,10 @@ type TupleToObject<T extends readonly (string | number | symbol)[]> = {
 - `tuple`是一个`readonly array`,` fixed length`, `fixed type`
 - `object`的 `key` 值必须是`string | number | symbol`
 
-## 如何返回一个 union type
+### 如何返回一个 `union type`
 
 1. 通过`keyof`得到`Object.keys` 的`union type`
 2. ``T[number]`得到元组的union type
-
 3. 传入是`union types`, 使用`conditional types`
 
 ```typescript
@@ -139,16 +164,90 @@ type StringToUnion<T extends string> = T extends `${infer First}${infer Rest}`
   : never
 ```
 
-## Chainable-Options
+### `extends` 行为：分发条件类型和非分发条件类型
+
+目的: 提供更灵活的类型操作方式, 有时我们需要对联合类型的每个成员单独处理，有时又需要将其视为一个整体。
+
+#### 分发条件类型
+
+> case1 - [easy-exclude](https://github.com/type-challenges/type-challenges/tree/main/questions/00043-easy-exclude)
+
+When conditional types act on a generic type, they **become _distributive_** when **given a union type.**
+
+```typescript
+export type MyExclude<T, U> = T extends U ? never : T
+
+Expect<Equal<MyExclude<'a' | 'b' | 'c', 'a'>, 'b' | 'c'>>
+
+//MyExclude<"a","a"> |MyExclude<"b","a">|MyExclude<"c","a">
+//"b" | "c"
+```
+
+触发分发的关键在于：
+
+- 裸类型参数（Naked Type Parameter）: 直接使用的泛型类型参数，没有被任何其他类型或结构包装。
+- 没有被 `[]`、`Promise`、`readonly` 等"包裹"
+
+`Documentation` : [distributive-conditional-types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types)
+
+#### 非分发条件类型
+
+> case2 - [medium-anyof](https://github.com/type-challenges/type-challenges/blob/main/questions/00949-medium-anyof/README.md)
+
+```typescript
+//如果数组中的每个元素都是"空"值（如空字符串、false、0等），则返回 false，否则返回 true。
+type AnyOf<T extends any[]> = T[number] extends
+  | ''
+  | false
+  | 0
+  | []
+  | { [key: string]: never }
+  | undefined
+  | null
+  ? false
+  : true
+
+//test-cases
+Expect<Equal<AnyOf<[1, '', false, [], {}]>, true>>
+Expect<Equal<AnyOf<[0, '', false, [], {}, undefined, null]>, false>>
+```
+
+- 在这个题目中, 为什么 `T[number]`也是 `union type`, 但是没有触发分发条件呢?
+  - 因为 `T[number]`是一个`Type Constructor`, 所以触发了非分发。
+  - 非分发会将整个联合类型作为一个整体进行检查, 只有当 `T[number]` 中的**所有**成员都满足右侧的条件时，才会返回 `false`。
+
+> 触发非分发的方法：
+
+- 使用 `[]` 包裹类型
+- 使用 `readonly` 修饰
+- 使用其他`Type Constructor`
+  - 可以创建新类型的类型操作或类型。它们接受一个或多个类型作为参数，并生成一个新的类型。
+
+所以在看完上述分析后怎么把上面的非分发变成意义上的分发呢?
+
+```typescript
+// infer 关键字会将 T[number] 的联合类型分解为单个类型
+// 外层 T[number] extends infer U 确保每个类型都被推断出来
+// 内层 U extends ... 对每个推断出的类型进行单独检查
+type AnyOfDistribute<T extends any[]> = T extends (infer U)[]
+  ? U extends '' | false | 0 | [] | { [key: string]: never } | undefined | null
+    ? false
+    : true
+  : false
+
+type Sample4 = AnyOfDistribute<[1, '', false, [], {}]> //boolean
+```
+
+### Chainable-Options
 
 ```typescript
 type MyAwaited<T extends PromiseLike<any>> =
   T extends PromiseLike<infer U> ? (U extends PromiseLike<any> ? MyAwaited<U> : U) : never
 ```
 
-## utility types 辨析
+### 辨析
 
-### Exclude & Omit
+#### Exclude 和 Omit
 
 > Exclude => union types
 
@@ -166,4 +265,48 @@ type MyExclude<T, U> = T extends U ? never : T
 type Omit<T, K extends keyof any> = { [P in Exclude<keyof T, K>]: T[P] }
 ```
 
-所以, 从上面的实现可以看出来, Omit 和 Pick 是对象类型层级上的操作, 而Exclude是针对 union types 的
+所以, 从上面的实现可以看出来, Omit 和 Pick 是对象类型层级上的操作, 而Exclude是针对 union types 的, 和她同级别的是Extract
+
+#### UnionType 和 IntersectionType
+
+> UnionType
+
+```typescript
+type Foo = {
+  name: string
+  age: string
+}
+
+type Bar = {
+  name: string
+  gender: number
+}
+
+type D = Foo | Bar //D 可以是 Foo 类型或 Bar 类型
+//{name: string;age: string;}|{name: string;gender: number;}
+```
+
+UnionType 会放大类型, 使类型能容纳更多的东西
+
+> IntersectionType
+
+```typescript
+type Foo = {
+  name: string
+  age: string
+}
+
+type Bar = {
+  name: string
+  gender: number
+}
+
+type G = Foo & Bar
+// type G = {
+//   name: string;
+//   age: string;
+//   gender: number;
+// }
+```
+
+IntersectionType 会缩小类型, 使类型变得更加具体
